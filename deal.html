@@ -3,12 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deal #D-4127 · HubSpot (mock)</title>
+<title>HubSpot · Deals</title>
 <link rel="stylesheet" href="cubro-identity.css">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 
+<!-- Prop. Sólo existe para que el Loom muestre que el asesor entra al portal del
+     cliente DESDE HubSpot. Nada de clonar HubSpot: una barra y un botón. -->
 <div class="hs-bar">
   <span>HubSpot · Deals</span>
   <span id="hsUser"></span>
@@ -18,82 +20,29 @@
 
 <script src="app.js"></script>
 <script>
-/* Entrada 2 (SPEC §4): el AM entra al portal DEL CLIENTE desde el deal.
-   Esta página es un mock sobrio de HubSpot, no un clon. */
 function renderDeal() {
-  const q = computeQuote(versionActual());
-  const v = baseVersion(versionActual());
-  const p = DEMO.proyecto;
-
+  const p = proyectoActual();
   document.getElementById('hsUser').textContent = DEMO.am.nombre;
-
-  const congelados = q.firmada ? `
-    <table class="simple">
-      <tr><th>Propiedad</th><th>Valor</th></tr>
-      <tr><td>Valor € AM · subtotal</td><td class="num">${eur(q.subtotal)}</td></tr>
-      <tr><td>Valor € AM · descuento</td><td class="num">−${eur(q.importeDescuento)}</td></tr>
-      <tr><td>Valor € AM · base imponible</td><td class="num">${eur(q.base_)}</td></tr>
-      <tr><td>Valor € AM · IVA 21 %</td><td class="num">${eur(q.iva)}</td></tr>
-      <tr><td>Valor € AM · total</td><td class="num">${eur(q.total)}</td></tr>
-      <tr><td>Versión congelada</td><td>${v.id} · ${v.fechaLarga}</td></tr>
-      <tr><td>Descuento aplicado</td><td>${q.descuento.nombre}</td></tr>
-      <tr><td>GM teórico</td><td>${pct0(q.gm)} · frentes ${pct0(q.gmFrentes)}</td></tr>
-    </table>`
-    : `<p class="muted">Las propiedades «Valores € AM» se pueblan cuando el asesor marca la versión final
-       en el portal de la clienta. Ahora mismo ${v.id} está en edición.</p>`;
 
   document.getElementById('deal').innerHTML = `
     <div class="proj-head">
       <div>
         <div class="proj-title">
-          <h1>${p.nombre}</h1>
+          <h1>${p ? p.nombre : 'Nuevo contacto'}</h1>
           <span class="proj-ref">Deal #${DEMO.deal.id}</span>
         </div>
-        <div class="proj-dir">${DEMO.cliente.nombre} · ${DEMO.cliente.email} · ${DEMO.cliente.telefono}</div>
+        <div class="proj-dir">${state().perfil.nombre} · ${state().perfil.email}</div>
         <div class="proj-dir">Etapa: <strong style="font-weight:400">${DEMO.deal.etapa}</strong> ·
-          propietario: ${DEMO.deal.propietario} · creado ${DEMO.deal.creado}</div>
+          propietario: ${DEMO.am.nombre}</div>
       </div>
       <div class="proj-actions">
-        <a class="btn" href="project.html?role=am">Abrir dashboard del cliente ↗</a>
-      </div>
-    </div>
-
-    <div class="tarea">
-      <div class="t">⚠ Tarea abierta · carrito abandonado</div>
-      Carolina guardó ${baseVersion('V1').id} el ${baseVersion('V1').fecha} y no avanzó.
-      Asignada a ${DEMO.am.nombre}: llamar para agendar videollamada.
-      <div style="margin-top:12px">
-        <button class="btn secondary" onclick="stub('Tarea completada en HubSpot.')">Marcar completada</button>
-      </div>
-    </div>
-
-    <div class="deal-grid">
-      <div>
-        <div class="block-header"><span class="name">Valor del deal</span><span class="meta">sincronizado desde el portal</span></div>
-        <div class="sum" style="margin-top:0;border-top:0">
-          <div class="sum-row total"><div class="k">Valor</div><div class="v num">${eur(q.total)}</div></div>
-        </div>
-        <div class="block-header"><span class="name">Versiones del proyecto</span><span class="meta">#${p.ref}</span></div>
-        <table class="simple">
-          <tr><th>Versión</th><th>Fecha</th><th>Estado</th><th>Total</th></tr>
-          ${state().orden.map(vid => {
-            const qq = computeQuote(vid), vv = baseVersion(vid);
-            const est = vid === versionActual()
-              ? (qq.firmada ? '<span class="badge firmada">firmada</span>' : '<span class="badge actual">actual</span>')
-              : '<span class="badge congelada">consulta</span>';
-            return `<tr><td>${vid}</td><td>${vv.fecha}</td><td>${est}</td><td class="num">${eur(qq.total)}</td></tr>`;
-          }).join('')}
-        </table>
-      </div>
-      <div>
-        <div class="block-header"><span class="name">Propiedades · valores € AM</span><span class="meta">congeladas al firmar</span></div>
-        ${congelados}
+        <a class="btn" href="${p ? 'project.html?role=am' : 'home.html?role=am'}">Abrir dashboard del cliente ↗</a>
       </div>
     </div>
 
     <hr class="divider">
-    <p class="muted">Una sola cuenta CUBRO por cliente: el asesor no tiene herramienta aparte —
-      entra desde este deal al portal de ${DEMO.cliente.nombre} y ve las mismas pantallas con botones extra.</p>`;
+    <p class="muted">El asesor no tiene herramienta aparte: entra desde este deal al portal de
+      ${state().perfil.nombre} y ve las mismas pantallas con botones extra.</p>`;
 }
 document.addEventListener('DOMContentLoaded', renderDeal);
 </script>

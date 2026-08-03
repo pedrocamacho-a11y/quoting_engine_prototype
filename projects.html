@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My projects · CUBRO</title>
+<link rel="stylesheet" href="cubro-identity.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="shell">
+  <nav class="sidenav"></nav>
+  <main class="main">
+    <div class="wrap" id="pr"></div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script src="crear.js"></script>
+<script>
+let TAB = 'curso';
+
+function renderProjects() {
+  const todos = proyectos();
+  const pedido = state().pedido;
+  const lista = TAB === 'curso'    ? todos.filter(p => !p.archivado && (!pedido || pedido.proyecto !== p.id))
+              : TAB === 'pedidos'  ? todos.filter(p => pedido && pedido.proyecto === p.id)
+              :                      todos.filter(p => p.archivado);
+
+  const cards = lista.map(p => {
+    const q = computeQuote(p, p.versionActual);
+    const badge = q.firmada
+      ? `<span class="badge firmada">${p.versionActual} · firmada</span>`
+      : `<span class="badge edicion">${p.versionActual} · en edición</span>`;
+    return `<div class="card">
+      <div class="card-img"><span>Render · ${p.nombre}</span></div>
+      <div class="card-body">
+        <div class="t">${p.nombre} <span class="proj-ref">#${p.ref}</span></div>
+        <div class="m">${badge}<br>
+          ${p.direccion ? p.direccion + ' · ' : ''}${p.barrio || p.ciudad}, ${p.cp}<br>
+          ${p.orden.length} ${p.orden.length === 1 ? 'versión' : 'versiones'} · creado ${p.creado}</div>
+        <div class="p">${eur(q.total)}</div>
+        <div style="margin-top:16px"><button class="btn secondary" onclick="verProyecto('${p.id}')">Ver proyecto</button></div>
+      </div></div>`;
+  }).join('');
+
+  /* El estado vacío de "En curso" sólo hace de onboarding si de verdad no hay nada;
+     si el cliente ya tiene proyectos en otras pestañas, basta con orientarle. */
+  const vacio = TAB === 'curso' && todos.length === 0
+    ? `<div class="empty">
+         <h2>Aquí vivirán tus proyectos</h2>
+         <p class="muted">Cada proyecto guarda su diseño, su presupuesto y todas sus versiones.</p>
+         <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
+           <button class="btn" onclick="abrirCrear('cubro')">Diseñar desde cero</button>
+           <button class="btn secondary" onclick="abrirCrear('ikea')">Ya tengo un diseño de IKEA</button>
+         </div>
+       </div>`
+    : `<div class="empty"><h2>Nada por aquí todavía</h2>
+         <p class="muted">${
+           TAB === 'curso'   ? 'Todos tus proyectos están ya confirmados: los tienes en la pestaña Pedidos.'
+         : TAB === 'pedidos' ? 'Cuando confirmes un proyecto, aparecerá en esta pestaña.'
+         :                     'No has archivado ningún proyecto.'}</p></div>`;
+
+  document.getElementById('pr').innerHTML = `
+    <div class="row-between">
+      <h1>My projects</h1>
+      <button class="btn" onclick="abrirCrear('cubro')">＋ Nuevo proyecto</button>
+    </div>
+
+    <div class="am-only am-box" style="margin-top:18px">
+      <div class="am-row" style="margin-bottom:0">
+        <span>Estás viendo los proyectos de: <strong style="font-weight:400">${state().perfil.nombre}</strong></span>
+        <button class="btn secondary" onclick="stub('Buscador de clientes: fuera del alcance del prototipo v1.')">Cambiar</button>
+      </div>
+    </div>
+
+    <div class="versions" style="margin-top:22px">
+      ${[['curso', 'En curso'], ['pedidos', 'Pedidos'], ['archivados', 'Archivados']].map(([id, l]) =>
+        `<button class="vchip ${TAB === id ? 'on' : ''}" onclick="setTab('${id}')">${l}</button>`).join('')}
+    </div>
+
+    ${lista.length ? `<div class="cards">${cards}</div>` : vacio}
+
+    <hr class="divider">
+    <h2>Renders 3D</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-img"><span>Render fotorrealista</span></div>
+        <div class="card-body">
+          <div class="t">Pide el render de tu diseño</div>
+          <div class="m">Nuestro equipo prepara una imagen fotorrealista de tu cocina terminada.</div>
+          <button class="btn secondary" onclick="stub('Solicitud de render enviada al equipo de CUBRO.')">Pedir render</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function setTab(t) { TAB = t; renderProjects(); }
+function verProyecto(id) { abrirProyecto(id); location.href = href('project.html'); }
+
+document.addEventListener('DOMContentLoaded', () => { renderChrome('projects'); renderProjects(); });
+document.addEventListener('cubro:rol', renderProjects);
+</script>
+</body>
+</html>

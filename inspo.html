@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspo · CUBRO</title>
+<link rel="stylesheet" href="cubro-identity.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="shell">
+  <nav class="sidenav"></nav>
+  <main class="main">
+    <div class="wrap" id="in"></div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script src="crear.js"></script>
+<script>
+function renderInspo() {
+  document.getElementById('in').innerHTML = `
+    <h1>Inspo</h1>
+    <p class="lead">Seis cocinas que CUBRO ha fabricado y montado, curadas por nuestro equipo.
+      Duplica la que más se parezca a lo que tienes en la cabeza: pasa a tu cuenta con su
+      presupuesto ya calculado y desde ahí la ajustas a tu espacio.</p>
+
+    <div class="cards" style="margin-top:24px">
+      ${INSPO.map(id => {
+        const pl = PLANTILLAS[id];
+        const ac = CATALOGO.acabados.find(a => a.id === pl.acabado);
+        return `<div class="card">
+          <div class="card-img"><span>${pl.nombre} — ${pl.barrio}</span></div>
+          <div class="card-body">
+            <div class="t">${pl.nombre} — ${pl.barrio}</div>
+            <div class="m">${ac.nombre} · ${pl.frentes} frentes · ${pl.columnas} columnas<br>
+              ${pl.encimera.label}</div>
+            <div class="p">${eur(pl.mobiliario.precio)} <span class="muted" style="font-size:12px">de mobiliario</span></div>
+            <div style="margin-top:16px">
+              <button class="btn secondary" onclick="empezarDesdeInspo('${id}')">Usar como punto de partida</button>
+            </div>
+          </div></div>`;
+      }).join('')}
+    </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => { renderChrome('inspo'); renderInspo(); });
+document.addEventListener('cubro:rol', renderInspo);
+</script>
+</body>
+</html>

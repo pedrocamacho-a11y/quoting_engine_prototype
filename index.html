@@ -28,21 +28,27 @@
     <div class="login-alt">
       <p>Entrada del asesor</p>
       <p style="margin-top:10px"><a href="deal.html">Abrir el deal #D-4127 en HubSpot ↗</a></p>
-      <p style="margin-top:20px"><a href="#" onclick="reiniciar()">Reiniciar datos de la demo</a></p>
+      <hr class="divider" style="margin:22px 0">
+      <p class="muted">Estado de la demo</p>
+      <p style="margin-top:10px"><button class="lnk" onclick="empezarVacio()">Empezar con el portal vacío</button></p>
+      <p style="margin-top:8px"><button class="lnk" onclick="cargarCierre()">Cargar Cocina Chamberí con sus 3 versiones</button></p>
     </div>
   </div>
 </div>
 
 <script src="app.js"></script>
 <script>
-function entrar(ev) {
-  ev.preventDefault();
-  location.href = 'home.html?role=cliente';
-}
-function reiniciar() {
+function entrar(ev) { ev.preventDefault(); location.href = 'home.html?role=cliente'; }
+
+/* Punto de partida del journey completo: la clienta aún no tiene nada. */
+function empezarVacio() {
   resetState();
-  toast('Datos de la demo reiniciados: V3 firmada y actual, V1 y V2 de consulta.');
-  return false;
+  toast('Portal vacío. Entra y crea tu primer proyecto.');
+}
+/* Atajo al final del guion: proyecto con V1, V2 y V3 firmada. */
+function cargarCierre() {
+  sembrarDemoCompleta();
+  toast('Cocina Chamberí cargada: V3 firmada y actual, V1 y V2 de consulta.');
 }
 </script>
 </body>

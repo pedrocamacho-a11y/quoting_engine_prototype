@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My profile · CUBRO</title>
+<link rel="stylesheet" href="cubro-identity.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="shell">
+  <nav class="sidenav"></nav>
+  <main class="main">
+    <div class="wrap" id="pf"></div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script>
+function renderProfile() {
+  const p = state().perfil;
+  const profesional = p.tipoCliente !== 'Particular';
+
+  document.getElementById('pf').innerHTML = `
+    <h1>My profile</h1>
+
+    <div class="block-header"><span class="name">Tus datos</span><span class="meta">se guardan al escribir</span></div>
+    <div class="form-grid">
+      <div class="f"><label for="fNombre">Nombre</label><input type="text" id="fNombre" value="${p.nombre}" onchange="setCampo('nombre',this.value)"></div>
+      <div class="f"><label for="fEmail">Email</label><input type="email" id="fEmail" value="${p.email}" onchange="setCampo('email',this.value)"></div>
+      <div class="f"><label for="fTel">Teléfono</label><input type="text" id="fTel" value="${p.telefono}" onchange="setCampo('telefono',this.value)"></div>
+      <div class="f"><label for="fPais">Idioma y mercado</label>
+        <select id="fPais" onchange="setCampo('pais',this.value)">
+          ${Object.values(MERCADOS).map(m => `<option value="${m.id}" ${p.pais === m.id ? 'selected' : ''}>${m.nombre} · español</option>`).join('')}
+        </select></div>
+      <div class="f"><label for="fTipo">¿Particular o profesional?</label>
+        <select id="fTipo" onchange="setCampo('tipoCliente',this.value)">
+          ${CATALOGO.perfiles.map(x => `<option ${p.tipoCliente === x ? 'selected' : ''}>${x}</option>`).join('')}
+        </select>
+        <span class="f-hint">${profesional ? 'Como profesional puedes facturar con IVA intracomunitario.' : 'Si eres arquitecto, interiorista o promotor, selecciónalo aquí.'}</span>
+      </div>
+    </div>
+
+    <div class="block-header"><span class="name">Datos de facturación</span><span class="meta">validación en vivo</span></div>
+    <div class="form-grid">
+      <div class="f"><label for="fNif">${profesional ? 'CIF' : 'NIF'}</label>
+        <input type="text" id="fNif" value="${p.nif}" placeholder="${profesional ? 'B12345678' : '12345678Z'}" oninput="valNif()" onblur="valNif()">
+        <span class="f-hint" id="hNif">${profesional ? 'Una letra y ocho dígitos.' : 'Ocho dígitos y una letra, sin puntos ni guiones.'}</span></div>
+      <div class="f"><label for="fDir">Dirección de facturación</label>
+        <input type="text" id="fDir" value="${p.dirFact}" placeholder="C/ Sagunto 14" onchange="setCampo('dirFact',this.value)"></div>
+      <div class="f"><label for="fCp">Código postal</label>
+        <input type="text" id="fCp" value="${p.cpFact}" maxlength="5" placeholder="28010" oninput="valCp()" onblur="valCp()">
+        <span class="f-hint" id="hCp">Cinco dígitos.</span></div>
+      ${profesional ? `
+      <div class="f"><label for="fVies">IVA intracomunitario</label>
+        <div class="f-row">
+          <input type="text" id="fVies" placeholder="ES B12345678">
+          <button class="btn secondary" onclick="validarVies()">Validar en VIES</button>
+        </div>
+        <span class="f-hint" id="hVies">${p.vies ? '✓ Validado en VIES' : 'Comprobamos el número contra el registro europeo.'}</span></div>` : ''}
+    </div>
+
+    <div style="margin-top:26px">
+      <button class="btn" onclick="stub('Datos guardados en tu cuenta CUBRO.')">Guardar cambios</button>
+    </div>
+
+    <hr class="divider">
+    <p class="muted">Tus direcciones de entrega no viven aquí: cada proyecto guarda la suya, porque el
+      código postal determina el IVA y la logística de ese proyecto en concreto.</p>`;
+}
+
+function setCampo(k, v) {
+  state().perfil[k] = v; saveState();
+  if (k === 'tipoCliente' || k === 'pais') renderProfile();
+}
+
+/* Validaciones de formato en vivo — el fail-safe que pide la §5.6. */
+function valNif() {
+  const inp = document.getElementById('fNif'), h = document.getElementById('hNif');
+  const v = inp.value.trim().toUpperCase();
+  const profesional = state().perfil.tipoCliente !== 'Particular';
+  const re = profesional ? /^[A-HJ-NP-SUVW]\d{8}$/ : /^\d{8}[A-Z]$/;
+  if (!v) { inp.className = ''; h.className = 'f-hint'; h.textContent = profesional ? 'Una letra y ocho dígitos.' : 'Ocho dígitos y una letra, sin puntos ni guiones.'; return; }
+  if (!re.test(v)) {
+    inp.className = 'bad'; h.className = 'f-hint bad';
+    h.textContent = /[.\-\s]/.test(v) ? 'Sin puntos, guiones ni espacios.' : `Formato de ${profesional ? 'CIF' : 'NIF'} no válido.`;
+    return;
+  }
+  inp.className = 'good'; h.className = 'f-hint good'; h.textContent = '✓ Formato correcto';
+  setCampo('nif', v);
+}
+function valCp() {
+  const inp = document.getElementById('fCp'), h = document.getElementById('hCp');
+  const v = inp.value.trim();
+  if (!v) { inp.className = ''; h.className = 'f-hint'; h.textContent = 'Cinco dígitos.'; return; }
+  if (!/^\d{5}$/.test(v)) {
+    inp.className = 'bad'; h.className = 'f-hint bad';
+    h.textContent = 'Un código postal son cinco dígitos, sin puntos ni letras.'; return;
+  }
+  const geo = resolverCP(state().perfil.pais, v);
+  inp.className = 'good'; h.className = 'f-hint good';
+  h.textContent = geo.barrio ? `✓ ${geo.barrio}, ${geo.ciudad}` : '✓ Formato correcto';
+  setCampo('cpFact', v);
+}
+function validarVies() {
+  const v = document.getElementById('fVies').value.trim();
+  const h = document.getElementById('hVies');
+  if (!v) { h.className = 'f-hint bad'; h.textContent = 'Escribe el número antes de validar.'; return; }
+  h.className = 'f-hint good'; h.textContent = '✓ Validado en VIES';
+  state().perfil.vies = true; saveState();
+  toast('Número validado contra el registro VIES.');
+}
+
+document.addEventListener('DOMContentLoaded', () => { renderChrome('profile'); renderProfile(); });
+document.addEventListener('cubro:rol', renderProfile);
+</script>
+</body>
+</html>

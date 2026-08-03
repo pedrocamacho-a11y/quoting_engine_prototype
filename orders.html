@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My orders · CUBRO</title>
+<link rel="stylesheet" href="cubro-identity.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="shell">
+  <nav class="sidenav"></nav>
+  <main class="main">
+    <div class="wrap" id="or"></div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script>
+const ETAPAS = [
+  { t: 'Pago inicial', s: 'Recibido el 50 % del proyecto' },
+  { t: 'Diseño validado', s: 'Tu diseñadora revisa medidas y plan de montaje antes de fabricar' },
+  { t: 'Producción y compra', s: 'Fabricamos tus frentes y compramos la estructura' },
+  { t: 'Entrega y montaje', s: 'Coordinamos día de entrega y montaje en tu casa' }
+];
+
+function renderOrders() {
+  const o = state().pedido;
+
+  if (!o) {
+    document.getElementById('or').innerHTML = `
+      <h1>My orders</h1>
+      <div class="empty">
+        <h2>Aún no tienes pedidos</h2>
+        <p class="muted">Cuando confirmes tu proyecto, aquí seguirás su viaje: pago, validación del
+          diseño, producción y entrega. También encontrarás tus documentos.</p>
+        <div style="margin-top:20px">
+          <a class="btn secondary" href="${href('projects.html')}">Ver mis proyectos</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const etapas = ETAPAS.map((e, i) => {
+    const n = i + 1;
+    const clase = n < o.etapa ? 'hecho' : n === o.etapa ? 'curso' : 'pend';
+    const dot = n < o.etapa ? '✓' : n === o.etapa ? '●' : '○';
+    return `<div class="step ${clase}">
+      <div class="step-dot">${dot}</div>
+      <div><div class="step-t">${e.t}</div><div class="step-s">${e.s}</div></div>
+      <div class="muted" style="font-size:12px">${n < o.etapa ? 'completado' : n === o.etapa ? 'en curso' : 'pendiente'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('or').innerHTML = `
+    <h1>My orders</h1>
+    <div class="proj-head" style="margin-top:20px">
+      <div>
+        <div class="proj-title"><h2>${o.nombre}</h2><span class="proj-ref">Pedido #${o.ref}</span></div>
+        <div class="proj-dir">Confirmado el ${o.fecha} · entrega en ${o.direccion}</div>
+      </div>
+    </div>
+
+    <div class="sum">
+      <div class="sum-row"><div class="k">Total del proyecto</div><div class="v num">${eur(o.total)}</div></div>
+      <div class="sum-row"><div class="k">Pagado (50 %)</div><div class="v num">${eur(o.pagado)}</div></div>
+      <div class="sum-row"><div class="k">Pendiente · antes de producción</div><div class="v num">${eur(o.total - o.pagado)}</div></div>
+    </div>
+
+    <div class="block-header"><span class="name">El viaje de tu pedido</span><span class="meta">#${o.ref}</span></div>
+    <div class="steps">${etapas}</div>
+
+    <div class="block-header"><span class="name">Documentos</span><span class="meta">descargables</span></div>
+    <table class="simple">
+      <tr><td>Proforma del proyecto</td><td style="text-align:right">
+        <button class="lnk" onclick="stub('Se descargaría la proforma en PDF.')">Descargar PDF</button></td></tr>
+      <tr><td>Factura del pago inicial</td><td style="text-align:right">
+        <button class="lnk" onclick="stub('Se descargaría la factura en PDF.')">Descargar PDF</button></td></tr>
+    </table>
+
+    <div class="am-only am-box" style="margin-top:26px">
+      <h3>Capa asesor</h3>
+      <div class="am-row">
+        <span>Cobro final: se solicita antes de entrar en el calendario de producción.</span>
+        <button class="btn secondary" onclick="stub('Recordatorio de cobro final enviado a ${state().perfil.nombre}.')">Forzar recordatorio</button>
+      </div>
+    </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => { renderChrome('orders'); renderOrders(); });
+document.addEventListener('cubro:rol', renderOrders);
+</script>
+</body>
+</html>

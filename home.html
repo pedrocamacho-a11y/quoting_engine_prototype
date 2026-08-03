@@ -17,18 +17,76 @@
 </div>
 
 <script src="app.js"></script>
+<script src="crear.js"></script>
 <script>
+/* Home. Con proyectos: saludo + CTA + tarjetas. Sin proyectos: estado vacío
+   que hace de onboarding (ver decisión de copy en el README). */
 function renderHome() {
-  const q = computeQuote(versionActual());
-  const p = DEMO.proyecto;
-  const v = baseVersion(versionActual());
+  const nombre = state().perfil.nombre.split(' ')[0];
+  const ps = proyectos().filter(p => !p.archivado);
 
-  const badge = q.firmada
-    ? `<span class="badge firmada">${v.id} · firmada por diseñador</span>`
-    : `<span class="badge edicion">${v.id} · en edición</span>`;
+  document.getElementById('home').innerHTML = ps.length ? conProyectos(nombre, ps) : sinProyectos(nombre);
+}
 
-  document.getElementById('home').innerHTML = `
-    <h1>Hola, ${DEMO.cliente.nombre.split(' ')[0]}</h1>
+/* — estado vacío — */
+function sinProyectos(nombre) {
+  return `
+    <h1>Hola, ${nombre}. Empecemos tu cocina</h1>
+    <p class="lead">Un proyecto guarda tu diseño, su presupuesto siempre actualizado y todas
+      sus versiones. Elige por dónde quieres empezar — puedes cambiar de idea en cualquier momento.</p>
+
+    <div class="paths">
+      ${CAMINOS.map(c => `
+        <button class="path" onclick="${c.accion}">
+          <span class="path-k">${c.kicker}</span>
+          <span class="path-t">${c.titulo}</span>
+          <span class="path-s">${c.sub}</span>
+          <span class="path-cta">${c.cta} →</span>
+        </button>`).join('')}
+    </div>
+
+    <hr class="divider">
+    <h2>O empieza desde una cocina que ya existe</h2>
+    <p class="muted" style="margin-top:6px">Seis proyectos reales de CUBRO, curados por nuestro equipo.
+      Duplicas el que más se parezca a lo que tienes en la cabeza y lo ajustas a tu espacio.</p>
+    <div class="cards" style="margin-top:18px">
+      ${INSPO.slice(0, 3).map(id => {
+        const pl = PLANTILLAS[id];
+        return `<div class="card">
+          <div class="card-img"><span>${pl.nombre} — ${pl.barrio}</span></div>
+          <div class="card-body">
+            <div class="t">${pl.nombre}</div>
+            <div class="m">${pl.barrio} · ${pl.frentes} frentes · desde ${eur(pl.mobiliario.precio)} de mobiliario</div>
+            <button class="btn secondary" onclick="empezarDesdeInspo('${id}')">Usar como punto de partida</button>
+          </div></div>`;
+      }).join('')}
+    </div>
+    <p style="margin-top:20px"><a class="lnk" href="${href('inspo.html')}">Ver las seis en Inspo →</a></p>`;
+}
+
+/* — con proyectos — */
+function conProyectos(nombre, ps) {
+  const cards = ps.map(p => {
+    const q = computeQuote(p, p.versionActual);
+    const badge = q.firmada
+      ? `<span class="badge firmada">${p.versionActual} · firmada por diseñador</span>`
+      : `<span class="badge edicion">${p.versionActual} · en edición</span>`;
+    return `<div class="card">
+      <div class="card-img"><span>Render · ${p.nombre}</span></div>
+      <div class="card-body">
+        <div class="t">${p.nombre}</div>
+        <div class="m">${badge}<br>${p.barrio || p.ciudad}, ${p.cp} · ${p.orden.length}
+          ${p.orden.length === 1 ? 'versión' : 'versiones'} · ${p.bases[p.versionActual].fecha}</div>
+        <div class="p">${eur(q.total)}</div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn secondary" onclick="verProyecto('${p.id}')">Ver proyecto</button>
+          <button class="btn ghost" onclick="stub('Kebab: Duplicar · Copiar link · Eliminar.')">···</button>
+        </div>
+      </div></div>`;
+  }).join('');
+
+  return `
+    <h1>Hola, ${nombre}</h1>
 
     <div class="cta-card">
       <div>
@@ -44,21 +102,11 @@ function renderHome() {
     </div>
 
     <hr class="divider">
-    <h2>Tus proyectos</h2>
-    <div class="cards">
-      <div class="card">
-        <div class="card-img"><span>Render · ${p.nombre}</span></div>
-        <div class="card-body">
-          <div class="t">${p.nombre}</div>
-          <div class="m">${badge}<br>${p.barrio}, ${p.cp} · ${state().orden.length} versiones · ${v.fecha}</div>
-          <div class="p">${eur(q.total)}</div>
-          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-            <a class="btn secondary" href="${href('project.html')}">Ver proyecto</a>
-            <button class="btn ghost" onclick="stub('Kebab: Duplicar · Copiar link · Eliminar.')">···</button>
-          </div>
-        </div>
-      </div>
+    <div class="row-between">
+      <h2>Tus proyectos</h2>
+      <button class="btn secondary" onclick="abrirCrear()">＋ Nuevo proyecto</button>
     </div>
+    <div class="cards">${cards}</div>
 
     <div class="am-only am-box" style="margin-top:30px">
       <h3>Acciones del deal #${DEMO.deal.id}</h3>
@@ -69,6 +117,8 @@ function renderHome() {
       </div>
     </div>`;
 }
+
+function verProyecto(id) { abrirProyecto(id); location.href = href('project.html'); }
 
 document.addEventListener('DOMContentLoaded', () => { renderChrome('home'); renderHome(); });
 document.addEventListener('cubro:rol', renderHome);
