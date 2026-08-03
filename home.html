@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home · CUBRO</title>
+<link rel="stylesheet" href="cubro-identity.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="shell">
+  <nav class="sidenav"></nav>
+  <main class="main">
+    <div class="wrap" id="home"></div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script>
+function renderHome() {
+  const q = computeQuote(versionActual());
+  const p = DEMO.proyecto;
+  const v = baseVersion(versionActual());
+
+  const badge = q.firmada
+    ? `<span class="badge firmada">${v.id} · firmada por diseñador</span>`
+    : `<span class="badge edicion">${v.id} · en edición</span>`;
+
+  document.getElementById('home').innerHTML = `
+    <h1>Hola, ${DEMO.cliente.nombre.split(' ')[0]}</h1>
+
+    <div class="cta-card">
+      <div>
+        <h2>Hazlo realidad</h2>
+        <p class="muted" style="margin-top:6px">Agenda una videollamada con tu diseñadora ${DEMO.de.nombre}</p>
+        <ul>
+          <li>Diseñador dedicado</li>
+          <li>Plan verificado antes de fabricar</li>
+          <li>Renders 3D de tu cocina</li>
+        </ul>
+      </div>
+      <button class="btn" onclick="stub('Se abriría el calendario de ${DEMO.de.nombre}.')">Agendar</button>
+    </div>
+
+    <hr class="divider">
+    <h2>Tus proyectos</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="card-img"><span>Render · ${p.nombre}</span></div>
+        <div class="card-body">
+          <div class="t">${p.nombre}</div>
+          <div class="m">${badge}<br>${p.barrio}, ${p.cp} · ${state().orden.length} versiones · ${v.fecha}</div>
+          <div class="p">${eur(q.total)}</div>
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+            <a class="btn secondary" href="${href('project.html')}">Ver proyecto</a>
+            <button class="btn ghost" onclick="stub('Kebab: Duplicar · Copiar link · Eliminar.')">···</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="am-only am-box" style="margin-top:30px">
+      <h3>Acciones del deal #${DEMO.deal.id}</h3>
+      <div class="am-row">
+        <button class="btn secondary" onclick="stub('Valores enviados al deal — sincronizado.')">Guardar en CRM</button>
+        <button class="btn secondary" onclick="stub('Propiedades «Valores € AM» del deal: subtotal, descuento, base, IVA y total congelados.')">Ver valores congelados</button>
+        <button class="btn secondary" onclick="stub('Tarea de seguimiento creada en HubSpot para ${DEMO.am.nombre}.')">Agendar seguimiento</button>
+      </div>
+    </div>`;
+}
+
+document.addEventListener('DOMContentLoaded', () => { renderChrome('home'); renderHome(); });
+document.addEventListener('cubro:rol', renderHome);
+</script>
+</body>
+</html>

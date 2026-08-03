@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cocina Chamberí · CUBRO</title>
+<link rel="stylesheet" href="cubro-identity.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="shell">
+  <nav class="sidenav"></nav>
+  <main class="main">
+    <div class="wrap" id="proj"></div>
+  </main>
+</div>
+
+<!-- modal: añadir línea fuera de catálogo (solo AM) -->
+<div class="modal-bg" id="modalExtra">
+  <div class="modal">
+    <h2>Añadir fuera de catálogo</h2>
+    <div class="err" id="mErr"></div>
+    <div class="f">
+      <label for="mConcepto">Concepto</label>
+      <input type="text" id="mConcepto" placeholder="Ej. Adaptación de instalación eléctrica">
+    </div>
+    <div class="f">
+      <label for="mImporte">Importe (€, sin IVA)</label>
+      <input type="number" id="mImporte" min="1" step="10" placeholder="0">
+    </div>
+    <div class="f">
+      <label for="mNota">Nota interna (obligatoria)</label>
+      <textarea id="mNota" rows="3" placeholder="Por qué se añade, quién lo autoriza, coste estimado…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="cerrarModalExtra()">Cancelar</button>
+      <button class="btn" onclick="guardarExtra()">Añadir línea</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="project.js"></script>
+</body>
+</html>
